@@ -1,66 +1,85 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
-
-import React from 'react';
-import type {PropsWithChildren} from 'react';
+import React, { useState } from 'react';
 import {
   SafeAreaView,
   ScrollView,
   StatusBar,
   StyleSheet,
   Text,
+  TouchableOpacity,
   useColorScheme,
   View,
+  FlatList,
+  Alert,
 } from 'react-native';
 
 import {
   Colors,
-  DebugInstructions,
   Header,
-  LearnMoreLinks,
-  ReloadInstructions,
 } from 'react-native/Libraries/NewAppScreen';
-
-type SectionProps = PropsWithChildren<{
-  title: string;
-}>;
-
-function Section({children, title}: SectionProps): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-  return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
-    </View>
-  );
-}
 
 function App(): React.JSX.Element {
   const isDarkMode = useColorScheme() === 'dark';
 
+  const [isActive, setIsActive] = useState(null);
+  const [selectSeat, setSelectSeat] = useState<string[]>([]);
+  const [amount, setAmount] = useState(0);
+
+  type SeatType = {
+    id: string;
+    name: string;
+    seatTotal: number;
+    cost: number;
+  };
+
   const backgroundStyle = {
     backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
   };
+
+  const seats = [
+    { id: "1", name: "Premium", seatTotal: 15, cost: 250 },
+    { id: "2", name: "Club", seatTotal: 30, cost: 150 },
+    { id: "3", name: "Diamond", seatTotal: 25, cost: 170 },
+    { id: "4", name: "Gold", seatTotal: 20, cost: 170 },
+  ];
+
+  function handleClick(seatNumber: any, seatAmount: any, seatName: any) {
+    Alert.alert(`${seatNumber} ${seatAmount} ${seatName}`);
+    setIsActive(seatNumber);
+    setAmount(oldAmt => oldAmt + seatAmount);
+    if (!selectSeat.includes(seatName)) {
+      setSelectSeat(oldArray => [...oldArray, seatName]);
+    }
+    console.log(`${isActive} ${selectSeat}`);
+  }
+
+  function renderSeat({ item, index }: { item: SeatType; index: number }) {
+    return (
+      <View key={item.id}>
+        <Text style={{ margin: 12, fontSize: 14, color: "grey" }}>
+          {item.name} Rs {item.cost}
+        </Text>
+        <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
+          {renderSeats(item.seatTotal, item.cost, item.name)}
+        </View>
+      </View>
+    );
+  }
+
+  function renderSeats(totalSeat: any, seatCost: any, seatName: any) {
+    const seatsArray = [];
+    for (let i = 1; i <= totalSeat; i++) {
+      seatsArray.push(
+        <TouchableOpacity
+          key={i}
+          style={isActive === i ? styles.activeSeat : styles.seat}
+          onPress={() => handleClick(i, seatCost, seatName)}
+        >
+          <Text style={{ fontSize: 10 }}>{i}</Text>
+        </TouchableOpacity>
+      );
+    }
+    return seatsArray;
+  }
 
   return (
     <SafeAreaView style={backgroundStyle}>
@@ -70,26 +89,15 @@ function App(): React.JSX.Element {
       />
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
+        style={backgroundStyle}
+      >
         <Header />
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
+        <View style={{ backgroundColor: isDarkMode ? Colors.black : Colors.white }}>
+          <FlatList
+            data={seats}
+            renderItem={renderSeat}
+            keyExtractor={(item, index) => index.toString()}
+          />
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -97,21 +105,17 @@ function App(): React.JSX.Element {
 }
 
 const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
+  seat: {
+    borderWidth: 1,
+    borderColor: 'black',
+    padding: 10,
+    margin: 5,
   },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
-    fontWeight: '700',
+  activeSeat: {
+    borderWidth: 1,
+    borderColor: 'red',
+    padding: 10,
+    margin: 5,
   },
 });
 
